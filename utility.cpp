@@ -50,8 +50,12 @@ Mat Utility::get_training_image(int num, Mat &gt, Mat &mask){
     os <<m;
     Mat image;
     image = read_image(training_prefix, n, os.str() + "_training.tif");
-    gt = read_image(training_1st_manual, n, os.str() + "_manual1.gif");
-    mask = read_image(training_mask_prefix, n, os.str() + "_training_mask.gif");
+    gt = read_image(training_1st_manual, n, os.str() + "_manual1.png");
+    mask = read_image(training_mask_prefix, n, os.str() + "_training_mask.png");
+    if (!gt.empty() && !mask.empty()){
+        cvtColor(gt, gt, CV_BGR2GRAY);
+        cvtColor(mask, mask, CV_BGR2GRAY);
+    }
     return image;
 }
 
