@@ -11,9 +11,13 @@ public:
     static const std::string oct_prefix;
     static const std::string training_prefix;
     static const std::string test_prefix;
+    static const std::string training_mask_prefix;
+    static const std::string training_1st_manual;
+    static const std::string test_mask_prefix;
+    static const std::string test_1st_manual;
     static cv::Mat get_ir_image(int num);
     static cv::Mat get_oct_image(int num);
-    static cv::Mat get_training_image(int num);
+    static cv::Mat get_training_image(int num, cv::Mat &gt, cv::Mat &mask);
     static cv::Mat get_test_image(int num);
     static cv::Mat cut_black_edge(cv::Mat image, uchar threshold = 0);
     static uchar get_average(cv::Mat image);

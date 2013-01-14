@@ -4,12 +4,15 @@
 #include <opencv2/core/core.hpp>
 #include <sstream>
 #include <limits>
+#include <iostream>
 using namespace std;
 using namespace cv;
 
 const string Utility::ir_prefix = "./Images/IR/";
 const string Utility::oct_prefix = "./Images/OCT/";
 const string Utility::training_prefix = "./Images/training/images/";
+const string Utility::training_mask_prefix = "./Images/training/mask/";
+const string Utility::training_1st_manual = "./Images/training/1st_manual/";
 const string Utility::test_prefix = "./Images/test/images/";
 
 Utility::Utility()
@@ -19,6 +22,7 @@ Utility::Utility()
 static Mat read_image(string prefix, int num, string ext){
     ostringstream os;
     os << num;
+    cout<<prefix + os.str() + ext<<endl;
     return imread(prefix + os.str() + ext);
 }
 
@@ -39,13 +43,16 @@ Mat Utility::get_test_image(int num){
     return read_image(test_prefix, n, os.str());
 }
 
-Mat Utility::get_training_image(int num){
+Mat Utility::get_training_image(int num, Mat &gt, Mat &mask){
     int n = num / 10;
     int m = num % 10;
     ostringstream os;
     os <<m;
-    os <<"_training.tif";
-    return read_image(training_prefix, n, os.str());
+    Mat image;
+    image = read_image(training_prefix, n, os.str() + "_training.tif");
+    gt = read_image(training_1st_manual, n, os.str() + "_manual1.gif");
+    mask = read_image(training_mask_prefix, n, os.str() + "_training_mask.gif");
+    return image;
 }
 
 uchar Utility::get_average(Mat image){
