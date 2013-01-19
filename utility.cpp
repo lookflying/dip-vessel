@@ -4,16 +4,17 @@
 #include <opencv2/core/core.hpp>
 #include <sstream>
 #include <limits>
+#include <string>
 #include <iostream>
 using namespace std;
 using namespace cv;
 
 const string Utility::ir_prefix = "./Images/IR/";
 const string Utility::oct_prefix = "./Images/OCT/";
-const string Utility::training_prefix = "./Images/training/images/";
-const string Utility::training_mask_prefix = "./Images/training/mask/";
-const string Utility::training_1st_manual = "./Images/training/1st_manual/";
-const string Utility::test_prefix = "./Images/test/images/";
+const string Utility::training_prefix = "./DRIVE/";
+const string Utility::training_mask_prefix = "./DRIVE/";
+const string Utility::training_1st_manual = "./DRIVE/";
+const string Utility::test_prefix = "./DRIVE/";
 
 Utility::Utility()
 {
@@ -22,7 +23,7 @@ Utility::Utility()
 static Mat read_image(string prefix, int num, string ext){
     ostringstream os;
     os << num;
-    cout<<prefix + os.str() + ext<<endl;
+//    cout<<prefix + os.str() + ext<<endl;
     return imread(prefix + os.str() + ext);
 }
 
@@ -39,17 +40,18 @@ Mat Utility::get_test_image(int num){
     int m = num % 10;
     ostringstream os;
     os <<m;
-    os <<"_test.tif";
+    os <<"_test.png";
     return read_image(test_prefix, n, os.str());
 }
 
-Mat Utility::get_training_image(int num, Mat &gt, Mat &mask){
+Mat Utility::get_training_image(int num, Mat &gt, Mat &mask, string &filename){
     int n = num / 10;
     int m = num % 10;
     ostringstream os;
     os <<m;
     Mat image;
-    image = read_image(training_prefix, n, os.str() + "_training.tif");
+    filename = os.str() + "_training.png";
+    image = read_image(training_prefix, n, filename);
     gt = read_image(training_1st_manual, n, os.str() + "_manual1.png");
     mask = read_image(training_mask_prefix, n, os.str() + "_training_mask.png");
     if (!gt.empty() && !mask.empty()){
@@ -251,4 +253,41 @@ Mat Utility::normalize_image(Mat image){
     Mat dst;
     normalize(image, dst, 0, 255, CV_MINMAX, CV_8UC1);
     return dst;
+}
+
+void Utility::analyze_result(Mat gt, Mat rst, int &gt_num, int &rst_num, int &match_num){
+    CV_Assert(gt.channels() == 1 && gt.elemSize() == 1);
+    CV_Assert(rst.channels() == 1 && rst.elemSize() == 1);
+    CV_Assert(rst.rows = gt.rows && rst.cols == gt.cols);
+    gt_num = rst_num = match_num = 0;
+    for (int i = 0; i < gt.rows; ++i){
+        for (int j = 0; j < gt.cols; ++j){
+            bool gt_ok = false, rst_ok = false;
+            if (gt.at<uchar>(i, j) > 0){
+                ++gt_num;
+                gt_ok = true;
+            }
+            if (rst.at<uchar>(i, j) > 0){
+                ++rst_num;
+                rst_ok = true;
+            }
+            if (gt_ok && rst_ok){
+                ++match_num;
+            }
+        }
+    }
+}
+
+void Utility::calc_accuracy(int gt_num, int rst_num, int match_num, int total, double &true_positive, double &false_positive, double &true_negative, double &false_negative){
+    true_positive = static_cast<double>(match_num) / static_cast<double>(rst_num);
+    false_positive = static_cast<double>(rst_num - match_num) / static_cast<double>(rst_num);
+    true_negative = static_cast<double>(total - rst_num) / static_cast<double>(total - match_num);
+    false_negative = static_cast<double>(gt_num - match_num) /  static_cast<double>(rst_num);
+}
+
+void Utility::print_accuracy(double true_positive, double false_positive, double true_negative, double false_negative){
+    cout<<"True Positive = "<<static_cast<int>(true_positive)<<endl;
+    cout<<"False Positive = "<<static_cast<int>(false_positive)<<endl;
+    cout<<"True Negative = "<<static_cast<int>(true_negative)<<endl;
+    cout<<"False Negative = "<<static_cast<int>(false_negative)<<endl;
 }

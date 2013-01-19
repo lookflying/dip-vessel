@@ -75,3 +75,16 @@ Mat Filter::rotate_mat(Mat mat, double angle){
     warpAffine(mat, dst, rot_mat, dst.size(), INTER_LINEAR, BORDER_CONSTANT, Scalar::all(0));
     return dst;
 }
+
+Mat Filter::morphology_restruct(Mat image, Mat mask){
+    Mat temp, old_temp, se;
+    image.copyTo(temp);
+    do{
+        temp.copyTo(old_temp);
+        se = getStructuringElement(MORPH_CROSS, Size(3, 3));
+        morphologyEx(image, temp, MORPH_DILATE, se);
+        bitwise_and(temp, mask, temp);
+    }while(countNonZero(temp - old_temp) > 0);
+    return temp;
+
+}
