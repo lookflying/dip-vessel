@@ -45,7 +45,7 @@ Mat process_image(Mat image, int i){
         GaussianBlur(equalized, blured, Size(3, 3), 1.5);
         Utility::add_to_display(os.str() + "-blur", blured);
 
-        Filter::gaussian_filter(blured, dst, 9, 2, 0);
+        Filter::matched_filter(blured, dst, 9, 2, 0);
 //            Utility::show_nonzero(os.str() + "-dst", dst);
         normalized = Utility::normalize_image(dst);
         Utility::add_to_display("normalized", normalized);
@@ -96,8 +96,10 @@ Mat process_drive_image(Mat image, Mat gt, Mat mask, std::string filename){
 //        Utility::add_to_display(os.str() + "-blur", blured);
 
 
-        Filter::gaussian_filter(equalized, thick, 9, 8, 1.5);
-        Filter::gaussian_filter(equalized, thin, 9, 2, 3);
+//        Filter::gaussian_filter(equalized, thick, 9, 8, 1.5);
+//        Filter::gaussian_filter(equalized, thin, 9, 2, 3);
+        Filter::multi_matched_filter(equalized, thick, 9, 2, 3, 1, 6);
+        thin = thick;
 //            Utility::show_nonzero(os.str() + "-dst", dst);
 
 
@@ -123,57 +125,57 @@ Mat process_drive_image(Mat image, Mat gt, Mat mask, std::string filename){
     }
 }
 
-Mat process_ir_image(Mat image, int i){
-    if (!image.empty()){
-        ostringstream os;
-        Mat gray;
-        Mat cut;
-        Mat resized;
-        Mat dst;
-        Mat equalized;
-        Mat blured;
-        Mat normalized;
-        Mat thresholded;
-        os << i;
-        os << ".bmp";
-        Utility::add_to_display(os.str(), image);
+//Mat process_ir_image(Mat image, int i){
+//    if (!image.empty()){
+//        ostringstream os;
+//        Mat gray;
+//        Mat cut;
+//        Mat resized;
+//        Mat dst;
+//        Mat equalized;
+//        Mat blured;
+//        Mat normalized;
+//        Mat thresholded;
+//        os << i;
+//        os << ".bmp";
+//        Utility::add_to_display(os.str(), image);
 
-        vector<Mat> layers;
-        split(image, layers);
-        gray = layers[1];
-//        cvtColor(image, gray, CV_BGR2GRAY);
-//            Utility::add_to_display(os.str() + "-gray", gray);
+//        vector<Mat> layers;
+//        split(image, layers);
+//        gray = layers[1];
+////        cvtColor(image, gray, CV_BGR2GRAY);
+////            Utility::add_to_display(os.str() + "-gray", gray);
 
-        medianBlur(gray, gray, 9);
+//        medianBlur(gray, gray, 9);
 
-        int t = Utility::get_average(gray);
-        cut = Utility::cut_black_edge(gray, t / 2);
-        Utility::add_to_display(os.str() + "-cut", cut);
-//        cut = gray;
+//        int t = Utility::get_average(gray);
+//        cut = Utility::cut_black_edge(gray, t / 2);
+//        Utility::add_to_display(os.str() + "-cut", cut);
+////        cut = gray;
 
-        resized = Utility::resize_according_to_height(cut, 400);
-        Utility::add_to_display(os.str() + "-resized", resized);
+//        resized = Utility::resize_according_to_height(cut, 400);
+//        Utility::add_to_display(os.str() + "-resized", resized);
 
-//        adaptiveThreshold(resized, thresholded, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 9, 0);
-//        Utility::add_to_display("thresholded", thresholded);
+////        adaptiveThreshold(resized, thresholded, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 9, 0);
+////        Utility::add_to_display("thresholded", thresholded);
 
-        thresholded = resized;
+//        thresholded = resized;
 
-        equalizeHist(thresholded, equalized);
-        Utility::add_to_display(os.str() + "-equalized", equalized);
+//        equalizeHist(thresholded, equalized);
+//        Utility::add_to_display(os.str() + "-equalized", equalized);
 
-        GaussianBlur(equalized, blured, Size(3, 3), 1.5);
-        Utility::add_to_display(os.str() + "-blur", blured);
+//        GaussianBlur(equalized, blured, Size(3, 3), 1.5);
+//        Utility::add_to_display(os.str() + "-blur", blured);
 
-        Filter::gaussian_filter(blured, dst, 11, 3, 2);
-//            Utility::show_nonzero(os.str() + "-dst", dst);
-        normalized = Utility::normalize_image(dst);
-        Utility::add_to_display("normalized", normalized);
+//        Filter::gaussian_filter(blured, dst, 11, 3, 2);
+////            Utility::show_nonzero(os.str() + "-dst", dst);
+//        normalized = Utility::normalize_image(dst);
+//        Utility::add_to_display("normalized", normalized);
 
 
-        return normalized;
-    }
-}
+//        return normalized;
+//    }
+//}
 
 int main()
 {

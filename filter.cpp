@@ -18,10 +18,27 @@ void Filter::sobel_filter(cv::Mat image, cv::Mat &filtered){
     Sobel(image, filtered, CV_16S, 1, 1, 5, 1, 0, BORDER_DEFAULT);
 
 }
+void Filter::multi_matched_filter(Mat image, Mat &filtered, int l, double sigma, double threshold_scale, double sigma_step, int repeat){
+    CV_Assert(image.channels() == 1 && image.elemSize() == 1);
+    int i = 0;
+    filtered = Mat(image.rows, image.cols, CV_8UC1, Scalar(0));
+    do{
+        Mat temp;
+        matched_filter(image, temp, l, sigma, threshold_scale);
+        temp = Utility::normalize_image(temp);
+        for (int j = 0; j < image.rows; ++j){
+            for (int k = 0; k < image.cols; ++k){
+                filtered.at<uchar>(j, k) = std::max(filtered.at<uchar>(j, k), temp.at<uchar>(j, k));
+            }
+        }
 
+        sigma += sigma_step;
+        ++i;
+    }while(i < repeat);
 
+}
 
-void Filter::gaussian_filter(Mat image, Mat &filtered, int l, double sigma, double threshold_scale){
+void Filter::matched_filter(Mat image, Mat &filtered, int l, double sigma, double threshold_scale){
     CV_Assert(image.channels() == 1 && image.elemSize() == 1);
     Mat kernel = generate_matched_filter_kernel(l, sigma);
     Mat middle_result(image.rows, image.cols, CV_32FC1, Scalar(0));
