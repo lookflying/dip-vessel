@@ -3,6 +3,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <cmath>
+#include <limits>
+#include <iostream>
+
 
 using namespace cv;
 Filter::Filter()
@@ -38,6 +41,40 @@ void Filter::multi_matched_filter(Mat image, Mat &filtered, int l, double sigma,
 
 }
 
+void Filter::window_threshold(Mat image, Mat &thresholded, Mat mask, Size window_size, double threshod_scale){
+    CV_Assert(image.channels() == 1 && image.elemSize() == 1);
+    CV_Assert(mask.channels() == 1 && mask.elemSize() == 1);
+    CV_Assert(image.rows == mask.rows && image.cols == mask.cols);
+    Mat average;
+    blur(image, average, window_size);
+    thresholded = Mat(image.size(), CV_8UC1, Scalar(0));
+    for (int i = 0; i < image.rows; ++i){
+        for (int j = 0; j < image.cols; ++j){
+            if (static_cast<int>(image.at<uchar>(i, j))
+                    < (static_cast<int>(average.at<uchar>(i, j)) * threshod_scale)){
+                thresholded.at<uchar>(i, j) = 255;
+            }
+        }
+    }
+}
+
+uchar Filter::get_average(Mat image, Mat mask){
+    CV_Assert(image.channels() == 1 && image.elemSize() == 1);
+    CV_Assert(mask.channels() == 1 && mask.elemSize() == 1);
+    CV_Assert(image.rows == mask.rows && image.cols == mask.cols);
+    unsigned int count = 0, sum = 0;
+    unsigned int threshold = std::numeric_limits<unsigned int>::max() - 256;
+    for (int i = 0; i < image.rows; ++i){
+        for (int j = 0; j < image.rows; ++j){
+            if (mask.at<uchar>(i, j) > 0){
+                ++count;
+                sum += static_cast<unsigned int>(image.at<uchar>(i, j));
+                CV_Assert(sum < threshold);
+            }
+        }
+    }
+    return static_cast<uchar>(sum / count);
+}
 void Filter::matched_filter(Mat image, Mat &filtered, int l, double sigma, double threshold_scale){
     CV_Assert(image.channels() == 1 && image.elemSize() == 1);
     Mat kernel = generate_matched_filter_kernel(l, sigma);

@@ -35,25 +35,17 @@ Mat Utility::get_oct_image(int num){
     return read_image(oct_prefix, num, ".bmp");
 }
 
-Mat Utility::get_test_image(int num){
+Mat Utility::get_test_image(int num, Mat &gt, Mat &mask, string &filename){
     int n = num / 10;
     int m = num % 10;
     ostringstream os;
-    os <<m;
-    os <<"_test.png";
-    return read_image(test_prefix, n, os.str());
-}
-
-Mat Utility::get_training_image(int num, Mat &gt, Mat &mask, string &filename){
-    int n = num / 10;
-    int m = num % 10;
-    ostringstream os;
+    os <<n;
     os <<m;
     Mat image;
-    filename = os.str() + "_training.png";
-    image = read_image(training_prefix, n, filename);
-    gt = read_image(training_1st_manual, n, os.str() + "_manual1.png");
-    mask = read_image(training_mask_prefix, n, os.str() + "_training_mask.png");
+    filename = os.str() + "_test.png";
+    image = read_image(training_prefix, n, os.str().substr(1, 1) + "_test.png");
+    gt = read_image(training_1st_manual, n, os.str().substr(1, 1) + "_manual1.png");
+    mask = read_image(training_mask_prefix, n, os.str().substr(1, 1) + "_test_mask.png");
     if (!gt.empty() && !mask.empty()){
         cvtColor(gt, gt, CV_BGR2GRAY);
         cvtColor(mask, mask, CV_BGR2GRAY);
@@ -61,18 +53,26 @@ Mat Utility::get_training_image(int num, Mat &gt, Mat &mask, string &filename){
     return image;
 }
 
-uchar Utility::get_average(Mat image){
-    unsigned int count = 0, sum = 0;
-    unsigned int threshold = numeric_limits<unsigned int>::max() - 256;
-    for (int i = 0; i < image.rows; ++i){
-        for (int j = 0; j < image.rows; ++j){
-            ++count;
-            sum += static_cast<unsigned int>(image.at<uchar>(i, j));
-            CV_Assert(sum < threshold);
-        }
+Mat Utility::get_training_image(int num, Mat &gt, Mat &mask, string &filename){
+    int n = num / 10;
+    int m = num % 10;
+    ostringstream os;
+    os <<n;
+    os <<m;
+    Mat image;
+    filename = os.str() + "_training.png";
+    image = read_image(training_prefix, n, os.str().substr(1, 1) + "_training.png");
+    gt = read_image(training_1st_manual, n, os.str().substr(1, 1) + "_manual1.png");
+    mask = read_image(training_mask_prefix, n, os.str().substr(1, 1) + "_training_mask.png");
+    if (!gt.empty() && !mask.empty()){
+        cvtColor(gt, gt, CV_BGR2GRAY);
+        cvtColor(mask, mask, CV_BGR2GRAY);
     }
-    return static_cast<uchar>(sum / count);
+    return image;
 }
+
+
+
 
 Mat Utility::   cut_black_edge(Mat image, uchar threshold){
     CV_Assert(image.channels() == 1 && image.elemSize() == 1);
